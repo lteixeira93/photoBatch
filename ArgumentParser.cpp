@@ -1,9 +1,11 @@
-#include "ArgumentParser.hpp"
-#include "Utils.hpp"
+#include "ArgumentParser.h"
+#include "Utils.h"
+#include <iostream>
+#include <cctype>
 
-void ArgumentParser::Parse(int argc, char* argv[])
+void ArgumentParser::Parse(int argc, const char* argv[])
 {
-	if (argc > 1)
+	if (argc > 1 && argv != nullptr)
 	{
 		for (size_t i = 1; i < argc; i++)
 		{
@@ -18,15 +20,15 @@ void ArgumentParser::Parse(int argc, char* argv[])
 					/* Removing -- */
 					arg = arg.substr(2);
 
-					/* Option */
+					/* Is an Option */
 					if (arg.find_first_of('=') != std::string::npos)
 					{
 						const size_t equalSignPos = arg.find('=');
 						if (equalSignPos != std::string::npos)
 						{
-							// Take string before = and make key
+							// Take string before '=' and make key
 							std::string optionName = arg.substr(0, equalSignPos);
-							// Take string after  = and make value
+							// Take string after  '=' and make value
 							std::string optionValue = arg.substr(equalSignPos + 1);
 
 							auto optionIt = m_Options.find(optionName);
@@ -35,10 +37,9 @@ void ArgumentParser::Parse(int argc, char* argv[])
 								/* Registered option found */
 								optionIt->second = optionValue;
 							}
-
 						}
 					}
-					/* Flag */
+					/* Is a Flag */
 					else
 					{
 						auto flagIt = m_Flags.find(arg);
@@ -56,7 +57,7 @@ void ArgumentParser::Parse(int argc, char* argv[])
 
 void ArgumentParser::RegisterFlag(const std::string& flag)
 {
-	if (!flag.empty())
+	if (!flag.empty() && !Utils::HasWhiteSpaces(flag))
 	{
 		m_Flags.insert(std::make_pair(flag, false));
 	}
@@ -77,10 +78,44 @@ bool ArgumentParser::GetFlag(const std::string& flag) const
 
 void ArgumentParser::RegisterOption(const std::string& option)
 {
-	if (!option.empty())
+	if (!option.empty() && !Utils::HasWhiteSpaces(option))
 	{
 		m_Options[option] = "";
 	}
+}
+
+bool ArgumentParser::IsFlagRegistered(const std::string& flag) const
+{
+	if (!flag.empty())
+	{
+		return m_Flags.count(flag) == 1;
+	}
+
+	return false;
+}
+
+bool ArgumentParser::IsOptionRegistered(const std::string& option) const
+{
+	if (!option.empty())
+	{
+		return m_Options.count(option) == 1;
+	}
+
+	return false;
+}
+
+bool ArgumentParser::IsFlagRegisteredAndParsed(const std::string& flag) const
+{
+	if (!flag.empty())
+	{
+		auto flagIt = m_Flags.find(flag);
+		if (flagIt != m_Flags.end())
+		{
+			flagIt->second;
+		}
+	}
+
+	return false;
 }
 
 std::string ArgumentParser::GetOption(const std::string& option) const

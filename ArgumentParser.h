@@ -1,7 +1,6 @@
-#ifndef _ARGUMENT_PARSER_HPP_
-#define _ARGUMENT_PARSER_HPP_
+#pragma once
 
-#include "Utils.hpp"
+#include "Utils.h"
 #include <string>
 #include <map>
 
@@ -10,13 +9,22 @@ class ArgumentParser
 {
 public:
 	/* Process argv[] */
-	void Parse(int argc, char* argv[]);
+	void Parse(int argc, const char* argv[]);
 	
 	/* Register a flag used during the parse */
 	void RegisterFlag(const std::string& flag);
 
 	/* Register an option used during the parse */
 	void RegisterOption(const std::string& option);
+
+	/* @GTEST Auxiliary method - Return if the flag is|isn't registered */
+	bool IsFlagRegistered(const std::string& flag) const;
+
+	/* @GTEST Auxiliary method - Return if the opion is|isn't registered */
+	bool IsOptionRegistered(const std::string& flag) const;	
+
+	/* @GTEST Auxiliary method - Return if the flag is|isn't parsed */
+	bool IsFlagRegisteredAndParsed(const std::string& flag) const;
 	
 	/* Get the flag value during the parse */
 	bool GetFlag(const std::string& flag) const;
@@ -48,5 +56,3 @@ private:
 	float GetOptionAsFloat(const std::string& option) const;
 	int GetOptionAsInt(const std::string& option) const;
 };
-
-#endif // _ARGUMENT_PARSER_HPP_

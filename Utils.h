@@ -1,11 +1,9 @@
-#ifndef _UTILS_HPP_
-#define _UTILS_HPP_
+#pragma once
 
 #include <string>
 
 namespace Utils
 {
 	std::string ToLower(std::string& str);
+	bool HasWhiteSpaces(const std::string& str);
 }
-
-#endif // _UTILS_HPP_

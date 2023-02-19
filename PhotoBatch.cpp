@@ -1,10 +1,11 @@
-#include "ArgumentParser.hpp"
+#include "ArgumentParser.h"
 #include <filesystem>
 #include <iostream>
 #include <iomanip>
 #include <array>
 
 #define NUM_MODES 5
+//#define UTEST
 //#define DEBUG
 
 namespace Args
@@ -31,7 +32,6 @@ namespace Args
 		static constexpr const char* To			 = "to";
 	}
 }
-
 
 static const std::string& GetInvalidChars(void)
 {
@@ -217,13 +217,14 @@ int main(int argc, char *argv[])
 
 	ArgumentParser argParser;
 
+#ifndef UTEST
 	/* Register Flags */
 	argParser.RegisterFlag(Args::Flags::Rename);
 	argParser.RegisterFlag(Args::Flags::Convert);
 	argParser.RegisterFlag(Args::Flags::Resize);
 	argParser.RegisterFlag(Args::Flags::Scale);
 	argParser.RegisterFlag(Args::Flags::Help);
-
+	
 	/* Register Options */
 	argParser.RegisterOption(Args::Opts::Folder);
 	argParser.RegisterOption(Args::Opts::Filter);
@@ -234,10 +235,13 @@ int main(int argc, char *argv[])
 	argParser.RegisterOption(Args::Opts::StartNumber);
 	argParser.RegisterOption(Args::Opts::From);
 	argParser.RegisterOption(Args::Opts::To);
+#else UTEST
+	argParser.RegisterFlag("My Flag");
+#endif // UTEST
 	
 	/* Parse argv from CLI */
 	argParser.Parse(argc, argv);
-
+	
 	try
 	{
 		ValidateArguments(argParser);
@@ -259,7 +263,7 @@ int main(int argc, char *argv[])
 	std::cout << "[DEBUG] Folder: " << argParser.GetOptionAs<std::string>("folder") << std::endl;
 	std::cout << "[DEBUG] Amount: " << argParser.GetOptionAs<float>("amount") << std::endl;
 	std::cout << "[DEBUG] Amount: " << argParser.GetOptionAs<int>("amount") << std::endl;
-#endif DEBUG
+#endif // DEBUG
 
 	return 0;
 }
