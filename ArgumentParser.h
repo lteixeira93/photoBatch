@@ -9,7 +9,7 @@ class ArgumentParser
 {
 public:
 	/* Process argv[] */
-	void Parse(int argc, const char* argv[]);
+	void Parse(int argc, char* argv[]);
 	
 	/* Register a flag used during the parse */
 	void RegisterFlag(const std::string& flag);
@@ -46,10 +46,17 @@ public:
 	template<>
 	std::string GetOptionAs(const std::string& option) const { return GetOption(option); }
 
+	/* Receives help message as parameter and set it */
+	void SetHelpMessage(const std::string& help);
+
+	/* Print out help message */
+	void PrintHelpMessage() const;
+
 private:
 	/* Private maps for flags and options */
 	std::map<std::string, bool> m_Flags;
 	std::map<std::string, std::string> m_Options;
+	std::string m_Help;
 
 	/* Get the value from option during the parse */
 	std::string GetOption(const std::string& option) const;

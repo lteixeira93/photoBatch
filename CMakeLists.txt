@@ -9,7 +9,10 @@ add_executable(PhotoBatch
 	"Utils.h"
 	"Utils.cpp"
 	"Unittests/TestArgumentParser.cpp"
-)
+    "Mode.h"
+	"Mode.cpp"
+	"RenameMode.h"
+	"RenameMode.cpp")
 
 set_target_properties(PhotoBatch PROPERTIES CXX_STANDARD 17)
 add_subdirectory(Unittests)

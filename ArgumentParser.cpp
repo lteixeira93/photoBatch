@@ -3,14 +3,13 @@
 #include <iostream>
 #include <cctype>
 
-void ArgumentParser::Parse(int argc, const char* argv[])
+void ArgumentParser::Parse(int argc, char* argv[])
 {
 	if (argc > 1 && argv != nullptr)
 	{
 		for (size_t i = 1; i < argc; i++)
 		{
 			std::string arg = argv[i];
-			Utils::ToLower(arg);
 
 			if (arg.length() >= 3)
 			{
@@ -26,8 +25,8 @@ void ArgumentParser::Parse(int argc, const char* argv[])
 						const size_t equalSignPos = arg.find('=');
 						if (equalSignPos != std::string::npos)
 						{
-							// Take string before '=' and make key
-							std::string optionName = arg.substr(0, equalSignPos);
+							// Take string before '=' lowercase it and make key
+							std::string optionName = Utils::ToLower(arg.substr(0, equalSignPos));
 							// Take string after  '=' and make value
 							std::string optionValue = arg.substr(equalSignPos + 1);
 
@@ -42,6 +41,7 @@ void ArgumentParser::Parse(int argc, const char* argv[])
 					/* Is a Flag */
 					else
 					{
+						Utils::ToLower(arg);
 						auto flagIt = m_Flags.find(arg);
 						if (flagIt != m_Flags.end())
 						{
@@ -153,4 +153,14 @@ int ArgumentParser::GetOptionAsInt(const std::string& option) const
 	}
 
 	return -1;
+}
+
+void ArgumentParser::SetHelpMessage(const std::string& help)
+{
+	m_Help = help;
+}
+
+void ArgumentParser::PrintHelpMessage() const
+{
+	std::cout << m_Help << std::endl;
 }
