@@ -1,4 +1,3 @@
-set(FETCHCONTENT_QUIET OFF CACHE BOOL "" FORCE)
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
 include(FetchContent)

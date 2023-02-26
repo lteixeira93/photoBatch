@@ -1,15 +1,20 @@
 #include "Mode.h"
 #include "RenameMode.h"
+#include "ConvertMode.h"
+#include "ResizeMode.h"
+#include "ResizeMode.h"
+#include "ScaleMode.h"
 #include "ArgumentParser.h"
 #include "Utils.h"
 #include <array>
 #include <filesystem>
 #include <iostream>
+#include <chrono>
 
 #define NUM_MODES 4
 
 Mode::Mode(const std::string& filter, const std::string& folder)
-	: m_Filter{ filter }, m_Folder { folder }
+	: m_Filter { filter }, m_Folder { folder }
 {}
 
 const std::string& Mode::GetFilter() const
@@ -24,23 +29,47 @@ const std::string& Mode::GetFolder() const
 
 void Mode::Run()
 {
-	/* Measure how long the operation took to run */
+	/* Run implementation and measure how long the operation takes to execute */
+	//std::chrono::high_resolution_clock::time_point startTime = std::chrono::high_resolution_clock::now();
+	using ClockT = std::chrono::high_resolution_clock;
+	
+	ClockT::time_point startTime = ClockT::now();	
 	RunImpl();
+	ClockT::time_point endTime = ClockT::now();
+
+	ClockT::duration elapsedTime = endTime - startTime; // In nanoseconds
+	std::chrono::milliseconds elapsedTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(elapsedTime);
+
+	std::cout << GetModeName() << "Operation finished in " << elapsedTimeMs.count() << " ms" << std::endl;
 }
 
-static const std::string& GetInvalidChars(void)
+std::vector<std::filesystem::path> Mode::GetFiles(const std::filesystem::path& extension) const
 {
-	static const std::string invalidCharacters = ":\\/*?\"<>|";
+	std::vector<std::filesystem::path> files;
+	int numSkippedFiles{ 0 };
 
-	/* Returns static reference */
-	return invalidCharacters;
-}
+	/* Colect all files that correspond to the specified filter */
+	for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(GetFolder()))
+	{
+		const bool bIsFile = std::filesystem::is_regular_file(entry.path());
+		const bool bMatchFilter = GetFilter().empty() || (entry.path().string().find(GetFilter()) != std::string::npos);
+		const bool bMatchExtension = extension.empty() || (entry.path().extension() == extension);
 
-bool HasInvalidChars(const std::string& str)
-{
-	const bool bHasInvalidChars = (str.find_first_of(GetInvalidChars()) != std::string::npos);
+		if (bIsFile && bMatchFilter &&bMatchExtension)
+		{
+			files.push_back(entry.path());
+		}
+		else
+		{
+			numSkippedFiles++;
+		}
 
-	return bHasInvalidChars;
+	}
+
+	std::cout << GetModeName() << "Number of founded files: " << files.size() << std::endl;
+	std::cout << GetModeName() << "Number of ignored files: " << numSkippedFiles << std::endl;
+
+	return files;
 }
 
 /* 
@@ -80,20 +109,20 @@ std::unique_ptr<Mode> CreateMode(const ArgumentParser& argParser)
 
 	// Verify if filter is valid
 	const std::string filter = argParser.GetOptionAs<std::string>(Args::Opts::Filter);
-	if (!filter.empty() && HasInvalidChars(filter))
+	if (filter.empty() || Utils::HasInvalidChars(filter))
 	{
-		throw std::invalid_argument("The filter cannot contain " + GetInvalidChars());
+		throw std::invalid_argument("The filter cannot contain " + Utils::GetInvalidChars());
 	}
 
 	// Verify Resize Mode
 	if (bResizeMode)
 	{
-		int width{};
-		int height{};
+		int width{0};
+		int height{0};
 
 		try {
-			const int width = argParser.GetOptionAs<int>(Args::Opts::Width);
-			const int height = argParser.GetOptionAs<int>(Args::Opts::Height);
+			width = argParser.GetOptionAs<int>(Args::Opts::Width);
+			height = argParser.GetOptionAs<int>(Args::Opts::Height);
 		}
 		catch (std::invalid_argument& exception)
 		{
@@ -109,6 +138,8 @@ std::unique_ptr<Mode> CreateMode(const ArgumentParser& argParser)
 		{
 			throw std::invalid_argument("Filter cannot be empty in Resize mode");
 		}
+
+		return std::make_unique<ResizeMode>(filter, folder, width, height);
 	}
 	// Verify Scale Mode
 	else if (bScaleMode)
@@ -132,6 +163,8 @@ std::unique_ptr<Mode> CreateMode(const ArgumentParser& argParser)
 		{
 			throw std::invalid_argument("Filter cannot be empty in Scale mode");
 		}
+
+		return std::make_unique<ScaleMode>(filter, folder, amount);
 	}
 	// Verify Rename Mode
 	else if (bRenameMode)
@@ -153,9 +186,9 @@ std::unique_ptr<Mode> CreateMode(const ArgumentParser& argParser)
 		{
 			throw std::invalid_argument("Start number amount must be grater or equal than 0");
 		}
-		if (prefix.empty() || HasInvalidChars(prefix))
+		if (prefix.empty() || Utils::HasInvalidChars(prefix))
 		{
-			throw std::invalid_argument("The prefix cannot be in empty or contain " + GetInvalidChars());
+			throw std::invalid_argument("The prefix cannot be in empty or contain " + Utils::GetInvalidChars());
 		}
 
 		return std::make_unique<RenameMode>(filter, folder, prefix, startNumber);
@@ -180,6 +213,13 @@ std::unique_ptr<Mode> CreateMode(const ArgumentParser& argParser)
 		{
 			throw std::invalid_argument("From and To must be different");
 		}
+
+		const std::map<std::string, ConvertMode::Format> convertOptionsMap = {
+			{ "jpg" , ConvertMode::Format::JPG },
+			{ "png" , ConvertMode::Format::PNG }
+		};
+
+		return std::make_unique<ConvertMode>(filter, folder, convertOptionsMap.at(from), convertOptionsMap.at(to));
 	}
 
 	return nullptr;

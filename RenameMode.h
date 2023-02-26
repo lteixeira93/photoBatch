@@ -1,5 +1,4 @@
 #pragma once
-
 #include "Mode.h"
 
 /* final -> Last class in hierarchy */

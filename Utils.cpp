@@ -14,4 +14,19 @@ namespace Utils
 	{
 		return str.find(' ') != std::string::npos;
 	}
+
+	const std::string& GetInvalidChars(void)
+	{
+		static const std::string invalidCharacters = ":\\/*?\"<>|";
+
+		/* Returns static reference */
+		return invalidCharacters;
+	}
+
+	bool HasInvalidChars(const std::string& str)
+	{
+		const bool bHasInvalidChars = (str.find_first_of(GetInvalidChars()) != std::string::npos);
+
+		return bHasInvalidChars;
+	}
 }

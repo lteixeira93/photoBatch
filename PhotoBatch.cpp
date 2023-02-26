@@ -27,6 +27,7 @@ int main(int argc, char *argv[])
 	argParser.RegisterOption(Args::Opts::Prefix);
 	argParser.RegisterOption(Args::Opts::StartNumber);
 	argParser.RegisterOption(Args::Opts::From);
+	argParser.RegisterOption(Args::Opts::To);
 	
 	/* Parse argv from CLI */
 	argParser.Parse(argc, argv);	
@@ -61,7 +62,8 @@ Commands:
 	{
 		try
 		{
-			if (std::unique_ptr<Mode> photoBatchMode = CreateMode(argParser))
+			std::unique_ptr<Mode> photoBatchMode = CreateMode(argParser);
+			if (photoBatchMode != nullptr)
 			{
 				photoBatchMode->Run();
 			}
@@ -72,20 +74,6 @@ Commands:
 			std::cerr << "Use the flag --help to know how to use the application" << std::endl;
 		}
 	}
-
-#ifdef DEBUG
-	/* Get Flags */
-	std::cout << std::boolalpha << "[DEBUG] Rename: "  << argParser.GetFlag(Args::Flags::Rename)  << std::endl;
-	std::cout << std::boolalpha << "[DEBUG] Convert: " << argParser.GetFlag(Args::Flags::Convert) << std::endl;
-	std::cout << std::boolalpha << "[DEBUG] Resize: "  << argParser.GetFlag(Args::Flags::Resize)  << std::endl;
-	std::cout << std::boolalpha << "[DEBUG] Scale: "   << argParser.GetFlag(Args::Flags::Scale)   << std::endl;
-	std::cout << std::boolalpha << "[DEBUG] Help: " << argParser.GetFlag(Args::Flags::Help) << std::endl;
-
-	/* Get Options */
-	std::cout << "[DEBUG] Folder: " << argParser.GetOptionAs<std::string>("folder") << std::endl;
-	std::cout << "[DEBUG] Amount: " << argParser.GetOptionAs<float>("amount") << std::endl;
-	std::cout << "[DEBUG] Amount: " << argParser.GetOptionAs<int>("amount") << std::endl;
-#endif // DEBUG
 
 	return 0;
 }
